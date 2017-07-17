@@ -22,10 +22,16 @@ var ProgressiveImage = (function (_super) {
         var _a = this.props, src = _a.src, preview = _a.preview;
         var initialBlur = this.props.initialBlur;
         this.setState({ src: "", blur: initialBlur });
-        this.fetch(preview)
-            .then(function (result) { return _this.setState({ src: result.src, blur: initialBlur }); })
-            .then(function () { return _this.fetch(src); })
-            .then(function (result) { return _this.setState({ src: result.src, isCached: result.isCached, blur: 0 }); });
+        var resultOrPromise = this.fetchSync(src);
+        if (resultOrPromise.src) {
+            this.setState({ src: resultOrPromise.src, isCached: resultOrPromise.isCached, blur: 0 });
+        }
+        else {
+            this.fetch(preview)
+                .then(function (result) { return _this.setState({ src: result.src, blur: initialBlur }); })
+                .then(function () { return resultOrPromise; })
+                .then(function (result) { return _this.setState({ src: result.src, isCached: result.isCached, blur: 0 }); });
+        }
     };
     ProgressiveImage.prototype.render = function () {
         var src = this.state.src;
@@ -43,6 +49,18 @@ var ProgressiveImage = (function (_super) {
                 image.addEventListener("load", function () { return resolve({ src: src }); }, false);
             }
         });
+    };
+    ProgressiveImage.prototype.fetchSync = function (src) {
+        var image = new Image();
+        image.src = src;
+        if (isCached(image)) {
+            return { src: src, isCached: true };
+        }
+        else {
+            return new Promise(function (resolve) {
+                image.addEventListener("load", function () { return resolve({ src: src }); }, false);
+            });
+        }
     };
     ProgressiveImage.prototype.getStyle = function () {
         var _a = this.props, transitionTime = _a.transitionTime, timingFunction = _a.timingFunction;

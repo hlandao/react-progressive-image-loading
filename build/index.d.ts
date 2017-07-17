@@ -22,5 +22,6 @@ export declare class ProgressiveImage extends React.Component<ProgressiveImagePr
     componentWillMount(): void;
     render(): JSX.Element;
     private fetch(src);
+    private fetchSync(src);
     private getStyle();
 }

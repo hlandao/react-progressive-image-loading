@@ -29,10 +29,17 @@ export class ProgressiveImage extends React.Component<ProgressiveImageProps, Pro
         const {src, preview} = this.props;
         const initialBlur = this.props.initialBlur as number;
         this.setState({ src: "", blur: initialBlur });
-        this.fetch(preview)
-            .then((result: any) => this.setState({ src: result.src, blur: initialBlur }))
-            .then(() => this.fetch(src))
-            .then((result: any) => this.setState({ src: result.src, isCached: result.isCached, blur: 0 }));
+
+        const resultOrPromise = this.fetchSync(src);
+        if (resultOrPromise.src) {
+            this.setState({ src: resultOrPromise.src, isCached: resultOrPromise.isCached, blur: 0 });
+        } else {
+            this.fetch(preview)
+                .then((result: any) => this.setState({ src: result.src, blur: initialBlur }))
+                .then(() => resultOrPromise)
+                .then((result: any) => this.setState({ src: result.src, isCached: result.isCached, blur: 0 }));
+        }
+
     }
 
     render() {
@@ -52,6 +59,19 @@ export class ProgressiveImage extends React.Component<ProgressiveImageProps, Pro
                 image.addEventListener("load", () => resolve({ src }), false);
             }
         });
+    }
+
+    private fetchSync(src: string): Promise<any> | any {
+        const image = new Image();
+        image.src = src;
+
+        if (isCached(image)) {
+            return { src, isCached: true };
+        } else {
+            return new Promise(resolve => {
+                image.addEventListener("load", () => resolve({ src }), false);
+            });
+        }
     }
 
     private getStyle() {
