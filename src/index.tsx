@@ -59,10 +59,7 @@ export class ProgressiveImage extends React.Component<ProgressiveImageProps, Pro
         const {blur, isCached} = this.state;
 
         if(isCached) {
-            return {
-                filter: `blur(${blur}px)`,
-                transition: `filter 0ms`
-            };
+            return {};
         } else {
             return {
                 filter: `blur(${blur}px)`,
