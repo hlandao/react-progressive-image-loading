@@ -11,6 +11,7 @@ export interface ProgressiveImageProps {
 
 export interface ProgressiveImageState {
     src: string;
+    isCached?: boolean;
     blur: number;
 }
 
@@ -29,9 +30,9 @@ export class ProgressiveImage extends React.Component<ProgressiveImageProps, Pro
         const initialBlur = this.props.initialBlur as number;
         this.setState({ src: "", blur: initialBlur });
         this.fetch(preview)
-            .then(previewDataURI => this.setState({ src: previewDataURI, blur: initialBlur }))
+            .then((result: any) => this.setState({ src: result.src, blur: initialBlur }))
             .then(() => this.fetch(src))
-            .then(srcDataURI => this.setState({ src: srcDataURI, blur: 0 }));
+            .then((result: any) => this.setState({ src: result.src, isCached: result.isCached, blur: 0 }));
     }
 
     render() {
@@ -40,25 +41,33 @@ export class ProgressiveImage extends React.Component<ProgressiveImageProps, Pro
         return render(src, this.getStyle());
     }
 
-    private fetch(src: string): Promise<string> {
+    private fetch(src: string): Promise<any> {
         return new Promise(resolve => {
             const image = new Image();
             image.src = src;
 
             if (isCached(image)) {
-                resolve(src);
+                resolve({ src, isCached: true });
             } else {
-                image.addEventListener("load", () => resolve(src), false);
+                image.addEventListener("load", () => resolve({ src }), false);
             }
         });
     }
 
     private getStyle() {
         const {transitionTime, timingFunction} = this.props;
-        const {blur} = this.state;
-        return {
-            filter: `blur(${blur}px)`,
-            transition: `filter ${transitionTime}ms ${timingFunction}`
-        };
+        const {blur, isCached} = this.state;
+
+        if(isCached) {
+            return {
+                filter: `blur(${blur}px)`,
+                transition: `filter 0ms`
+            };
+        } else {
+            return {
+                filter: `blur(${blur}px)`,
+                transition: `filter ${transitionTime}ms ${timingFunction}`
+            };
+        }
     }
 }
