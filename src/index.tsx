@@ -14,6 +14,8 @@ export interface ProgressiveImageState {
     blur: number;
 }
 
+const isCached = (image: any) => image.complete || image.width + image.height > 0;
+
 export class ProgressiveImage extends React.Component<ProgressiveImageProps, ProgressiveImageState> {
 
     static defaultProps = {
@@ -42,7 +44,12 @@ export class ProgressiveImage extends React.Component<ProgressiveImageProps, Pro
         return new Promise(resolve => {
             const image = new Image();
             image.src = src;
-            image.addEventListener("load", () => resolve(src), false);
+
+            if (isCached(image)) {
+                resolve(src);
+            } else {
+                image.addEventListener("load", () => resolve(src), false);
+            }
         });
     }
 

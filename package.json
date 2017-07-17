@@ -43,6 +43,5 @@
   "release": {
     "verifyConditions": "condition-circle"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
